@@ -6,6 +6,7 @@ import requests
 response = requests.get("http://192.168.8.166:8181/onos/v1/flows" , auth=("karaf", "karaf"))
 response2 = requests.get("http://192.168.8.166:8181/onos/v1/hosts" , auth=("karaf", "karaf"))
 response3 = requests.get("http://192.168.8.166:8181/onos/v1/links" , auth=("karaf", "karaf"))
+response4 = requests.get("http://192.168.8.166:8181/onos/v1/devices" , auth=("karaf", "karaf"))
 
 if (response.status_code == 200):
     print("The request was a success!")
@@ -27,6 +28,11 @@ if (response3.status_code == 200):
 elif (response3.status_code == 404):
     print("Result not found!")
 
+if (response4.status_code == 200):
+    print("The request was a success!")
+    print(response4.json())
+elif (response4.status_code == 404):
+    print("Result not found!")
 # odpowiedni sposób przechowania informacji o węzłach i łączach
 
 
