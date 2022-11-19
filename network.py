@@ -27,9 +27,10 @@ if (response3.status_code == 200):
 elif (response3.status_code == 404):
     print("Result not found!")
 
-# Część 2:
-# odpowiedni sposób przechowania informacji o węzłach i łączach
+with open("odpowiedz", mode='wb') as localfile:
+    localfile.write(response.json())
 
+# odpowiedni sposób przechowania informacji o węzłach i łączach
 
 
 # Część 3:
