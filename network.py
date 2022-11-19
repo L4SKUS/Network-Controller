@@ -1,4 +1,7 @@
+import sys
+import json
 import requests
+import bootle
 
 # Część 1:
 # wczyatnie z pliku informacji o węzłach i łączach(wysyła żadanie GET, aby dostac informacje)
@@ -65,8 +68,61 @@ Szczecin ='10.0.0.8'
 Gdansk ='10.0.0.9'
 Poznan ='10.0.0.10'
 
+
 # Część 4:
 # Wyznaczenie najbardziej optymalnej ścieżki za pomocą algorytmu
+class dane(object):
+  def __init__(self, v, p, d):
+    self.odwiedzony = v
+    self.poprzednik = p
+    self.dystans = d
+def szukajMinimum(tab):
+  min = -1
+  mindist = sys.maxsize
+  for i in range(0, len(macierz)):
+    if ((not tab[i].odwiedzony) and tab[i].dystans < mindist):
+      min = i
+      mindist = tab[i].dystans
+  return min
+def Dijkstra(macierz, start):
+  tab = []
+  for i in range(0, len(macierz)):
+    tab.append(dane(False, -1, sys.maxsize))
+  tab[start].dystans = 0
+  u = start
+  while(u != -1):
+    tab[u].odwiedzony = True
+    for i in range(0, len(macierz)):
+      if (macierz[u][i] > 0 and tab[u].dystans + macierz[u][i] < tab[i].dystans):
+        tab[i].dystans = tab[u].dystans + macierz[u][i]
+        tab[i].poprzednik = u
+    u = szukajMinimum(tab)
+  return tab
+
+
+n = int(input('Podaj ile węzłów ma graf\n n = '))
+s = int(input('Podaj węzeł startowy\n s = '))
+print('Podaj elementy macierzy:')
+macierz = []
+for i in range(0, n):
+    tab = [int(x) for x in input().split()]
+    macierz.append(tab)
+
+tab = Dijkstra(macierz, s)
+for i in range(0, n):
+    wypiszDane(i, tab[i])
+def wypiszDane(i, d):
+  txt = str(i) + "\t"
+  if (not d.odwiedzony):
+    txt += "nieodwiedzony"
+  else:
+    if (d.poprzednik == -1):
+      txt += "brak"
+    else:
+      txt += str(d.poprzednik)
+    txt += "\t" + str(d.dystans)
+  print(txt);
+
 
 # Część 5:
 # Wysyła żądanie o wysłanie pakietów najlepszą drogą
