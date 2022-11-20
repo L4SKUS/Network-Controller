@@ -2,25 +2,26 @@ import sys
 import json
 import requests
 import bootle
+import math
 
 # Część 1:
 # wczyatnie z pliku informacji o węzłach i łączach(wysyła żadanie GET, aby dostac informacje)
 
-response = requests.get("http://192.168.8.166:8181/onos/v1/flows", auth=("karaf", "karaf"))
-response2 = requests.get("http://192.168.8.166:8181/onos/v1/hosts", auth=("karaf", "karaf"))
-response3 = requests.get("http://192.168.8.166:8181/onos/v1/links", auth=("karaf", "karaf"))
-response4 = requests.get("http://192.168.8.166:8181/onos/v1/devices", auth=("karaf", "karaf"))
+# response = requests.get("http://192.168.8.166:8181/onos/v1/flows", auth=("karaf", "karaf"))
+# response2 = requests.get("http://192.168.8.166:8181/onos/v1/hosts", auth=("karaf", "karaf"))
+# response3 = requests.get("http://192.168.8.166:8181/onos/v1/links", auth=("karaf", "karaf"))
+# response4 = requests.get("http://192.168.8.166:8181/onos/v1/devices", auth=("karaf", "karaf"))
+#
+# # odpowiedni sposób przechowania informacji o węzłach i łączach
+# # devices id
+# device_IDs = []
+# for dictionary in response4.json()['devices']:
+#     device_IDs.append(dictionary['id'])
+# print("Devices id:"+ device_IDs)
+# #links
 
-# odpowiedni sposób przechowania informacji o węzłach i łączach
-# devices id
-device_IDs = []
-for dictionary in response4.json()['devices']:
-    device_IDs.append(dictionary['id'])
-print("Devices id:"+ device_IDs)
-#links
 
-
-print(sorted(device_IDs))
+#print(sorted(device_IDs))
 # Część 3:
 # żądanie użytkownika skąd i gdzie chce wysłać pakiety
 print("Wybierz miasto,z którego wyslesz pakiety oraz miasto docelowe")
@@ -45,84 +46,60 @@ Poznan = '10.0.0.10'
 # Python program for Dijkstra's single
 # source shortest path algorithm. The program is
 # for adjacency matrix representation of the graph
-class Graph():
-
-    def __init__(self, vertices):
-        self.V = vertices
-        self.graph = [[0 for column in range(vertices)]
-                      for row in range(vertices)]
-
-    def printSolution(self, dist):
-        print("Vertex \t Distance from Source")
-        for node in range(self.V):
-            print(node, "\t\t", dist[node])
-
-    # A utility function to find the vertex with
-    # minimum distance value, from the set of vertices
-    # not yet included in shortest path tree
-    def minDistance(self, dist, sptSet):
-
-        # Initialize minimum distance for next node
-        min = 1e7
-
-        # Search not nearest vertex not in the
-        # shortest path tree
-        for v in range(self.V):
-            if dist[v] < min and sptSet[v] == False:
-                min = dist[v]
-                min_index = v
-
-        return min_index
-
-    # Function that implements Dijkstra's single source
-    # shortest path algorithm for a graph represented
-    # using adjacency matrix representation
-    def dijkstra(self, src):
-
-        dist = [1e7] * self.V
-        dist[src] = 0
-        sptSet = [False] * self.V
-
-        for cout in range(self.V):
-
-            # Pick the minimum distance vertex from
-            # the set of vertices not yet processed.
-            # u is always equal to src in first iteration
-            u = self.minDistance(dist, sptSet)
-
-            # Put the minimum distance vertex in the
-            # shortest path tree
-            sptSet[u] = True
-
-            # Update dist value of the adjacent vertices
-            # of the picked vertex only if the current
-            # distance is greater than new distance and
-            # the vertex in not in the shortest path tree
-            for v in range(self.V):
-                if (self.graph[u][v] > 0 and
-                        sptSet[v] == False and
-                        dist[v] > dist[u] + self.graph[u][v]):
-                    dist[v] = dist[u] + self.graph[u][v]
-
-        self.printSolution(dist)
+def algorithm(source, destination):
+    graph = {
+        'Warszawa': {'Krakow': 1.78, 'Lodz': 0.84, 'Bydgoszcz':1.6,'Lublin':1.08,'Gdansk':2},
+        'Krakow': {'Katowice': 0.49, 'Lodz': 1.36, 'Lublin': 1.6,'Warszawa':1.78},
+        'Lodz': {'Warszawa': 0.84,'Krakow': 1.36,'Wroclaw': 1.29,'Bydgoszcz': 1.27},
+        'Bydgoszcz': {'Warszawa': 1.6,'Lodz': 1.27,'Gdansk': 1.01,'Poznan': 0.75,'Szczecin':1.64},
+        'Lublin': {'Warszawa': 1.08,'Krakow': 1.6,},
+        'Katowice': {'Krakow': 0.49, 'Wroclaw': 1.19},
+        'Wroclaw': {'Katowice': 1.19, 'Lodz': 1.29, 'Poznan': 1.02},
+        'Szczecin': {'Poznan': 3, 'Bydgoszcz': 1.64, 'Gdansk': 2.02},
+        'Gdansk': {'Bydgoszcz': 1.01, 'Szczecin': 2.02,'Warszawa':2},
+        'Poznan': {'Bydgoszcz': 0.75, 'Wroclaw': 1.02, 'Szczecin':1.38},
+        }
 
 
-# Driver program
-g = Graph(10)
+    unvisited = graph
+    shortest_distances = {}
+    route = []
+    path_nodes = {}
 
-g.graph = [[0, 1.78, 0.84, 1.60, 1.08, 0, 0, 0, 2.00, 0],
-           [1.78, 0, 1.36, 0, 1.60, 0.49, 0, 0, 0, 0],
-           [0.84, 1.36, 0, 1.27, 0, 0, 1.29, 0, 0, 0],
-           [1.60, 0, 1.27, 0, 0, 0, 0, 1.64, 1.01, 0.75],
-           [1.08, 1.60, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0.49, 0, 0, 0, 0, 1.19, 0, 0, 0],
-           [0, 0, 1.29, 0, 0, 1.19, 0, 0, 0, 1.02],
-           [0, 0, 0, 1.64, 0, 0, 0, 0, 2.02, 1.38],
-           [2.00, 0, 0, 1.01, 0, 0, 0, 2.02, 0, 0],
-           [0, 0, 0, 0.75, 0, 0, 1.02, 1.38, 0, 0]
-           ]
+    for nodes in unvisited:
+        shortest_distances[nodes] = math.inf
+    shortest_distances[source] = 0
 
-g.dijkstra(4)
+    while unvisited:
+        min_node = None
+        for current_node in unvisited:
+            if min_node is None:
+                min_node = current_node
+            elif shortest_distances[min_node] \
+                > shortest_distances[current_node]:
+                min_node = current_node
+        for (node, value) in unvisited[min_node].items():
+            if value + shortest_distances[min_node] \
+                < shortest_distances[node]:
+                shortest_distances[node] = value \
+                    + shortest_distances[min_node]
+                path_nodes[node] = min_node
+        unvisited.pop(min_node)
+    node = destination
 
+    while node != source:
+        try:
+            route.insert(0, node)
+            node = path_nodes[node]
+        except Exception:
+            print('Path not reachable')
+            break
+    route.insert(0, source)
+
+    if shortest_distances[destination] != math.inf:
+        print('Shortest distance is ' + str(shortest_distances[destination]))
+        print('And the path is ' + str(route))
+
+algorithm(miasto1,miasto2)
 # Część 5:
 # Wysyła żądanie o wysłanie pakietów najlepszą drogą
