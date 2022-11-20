@@ -18,124 +18,81 @@ miasta = [
 ]
 
 
-def skrajne(trasa):
+def tworzenie_jsona(deviceId, IN_PORT, OUTPUT, IPv4, nazwa):
+    with open("Onos2.json", "r") as jsonFile:
+        data = json.load(jsonFile)
+        data['deviceId'] = deviceId
+        data['treatment']['instructions'][0]['port'] = OUTPUT
+        data['selector']['criteria'][0]['port'] = IN_PORT
+        data['selector']['criteria'][2]['ip'] = IPv4
+    with open(nazwa, "w") as jsonFile:
+        json.dump(data, jsonFile)
 
-    src = trasa[0]
-    dst = trasa[::-1][0]
 
-    src_switch = 0
-    dst_switch = 0
-    port_src_host = 0
-    port_dst_host = 0
-    port_src_switch = 0
-    port_dst_switch = 0
-    ip_host_src = 0
-    ip_host_dst = 0
+def POST(trasa):
+
+    port_host_src = 404
+    port_host_dst = 404
+    ip_host_src = 404
+    ip_host_dst = 404
+
+    lista_switchy = []
+
+    for przystanek in trasa:
+        for miasto in miasta:
+            if przystanek == miasto['nazwa']:
+                lista_switchy.append(miasto['switch'])
 
     for miasto in miasta:
-        if miasto['nazwa'] == src:
-            src_switch = miasto['switch']
+        if miasto['nazwa'] == trasa[0]:
             ip_host_src = miasto['IPv4']
-        if miasto['nazwa'] == dst:
-            dst_switch = miasto['switch']
+            for element in response_hosts['hosts']:
+                if element['locations'][0]['elementId'] == miasto['switch']:
+                    port_host_src = element['locations'][0]['port']
+        if miasto['nazwa'] == trasa[::-1][0]:
             ip_host_dst = miasto['IPv4']
+            for element in response_hosts['hosts']:
+                if element['locations'][0]['elementId'] == miasto['switch']:
+                    port_host_dst = element['locations'][0]['port']
 
-    for element in response_hosts['hosts']:
-        if element['locations'][0]['elementId'] == src_switch:
-            port_src_host = element['locations'][0]['port']
-        if element['locations'][0]['elementId'] == dst_switch:
-            port_dst_host = element['locations'][0]['port']
-
-    for link in response_links['links']:
-        if link['src']['device'] == src_switch and link['dst']['device'] == dst_switch:
-            port_src_switch = link['src']['port']
-            port_dst_switch = link['dst']['port']
-
-    with open("Onos2.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        data['deviceId'] = src_switch
-        data['treatment']['instructions'][0]['port'] = port_src_switch
-        data['selector']['criteria'][0]['port'] = port_src_host
-        data['selector']['criteria'][2]['ip'] = ip_host_dst
-    with open("src_out.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
-
-    with open("Onos2.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        data['deviceId'] = src_switch
-        data['treatment']['instructions'][0]['port'] = port_src_host
-        data['selector']['criteria'][0]['port'] = port_src_switch
-        data['selector']['criteria'][2]['ip'] = ip_host_src
-    with open("src_in.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
-
-    with open("Onos2.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        data['deviceId'] = dst_switch
-        data['treatment']['instructions'][0]['port'] = port_dst_host
-        data['selector']['criteria'][0]['port'] = port_dst_switch
-        data['selector']['criteria'][2]['ip'] = ip_host_dst
-    with open("dst_in.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
-
-    with open("Onos2.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        data['deviceId'] = dst_switch
-        data['treatment']['instructions'][0]['port'] = port_dst_switch
-        data['selector']['criteria'][0]['port'] = port_dst_host
-        data['selector']['criteria'][2]['ip'] = ip_host_src
-    with open("dst_out.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
-
-    return ip_host_src, ip_host_dst
+    for i in range(len(trasa)):
+        #pierwszy switch
+        if i == 0:
+            port_in = port_host_src
+            port_out = 404
+            for link in response_links['links']:
+                if link['src']['device'] == lista_switchy[i] and link['dst']['device'] == lista_switchy[i+1]:
+                    port_out = link['src']['port']
+            tworzenie_jsona(lista_switchy[i], port_in, port_out, ip_host_dst, 'src_sent.json')
+            tworzenie_jsona(lista_switchy[i], port_out, port_in, ip_host_src, 'src_rec.json')
 
 
-def wewnetrzne(trasa, host_src, host_dst):
-    for i in range(len(trasa)-1):
-        src = trasa[i]
-        dst = trasa[i+1]
+        #ostatni switch
+        elif i == len(trasa)-1:
+            port_out = port_host_dst
+            port_in = 404
+            for link in response_links['links']:
+                if link['src']['device'] == lista_switchy[i-1] and link['dst']['device'] == lista_switchy[i]:
+                    port_in = link['dst']['port']
+            tworzenie_jsona(lista_switchy[i], port_in, port_out, ip_host_dst, 'dst_sent.json')
+            tworzenie_jsona(lista_switchy[i], port_out, port_in, ip_host_src, 'dst_rec.json')
 
-        src_switch = 0
-        dst_switch = 0
-        port_src_switch = 0
-        port_dst_switch = 0
-
-        for miasto in miasta:
-            if miasto['nazwa'] == src:
-                src_switch = miasto['switch']
-            if miasto['nazwa'] == dst:
-                dst_switch = miasto['switch']
-
-        for link in response_links['links']:
-            if link['src']['device'] == src_switch and link['dst']['device'] == dst_switch:
-                port_src_switch = link['src']['port']
-                port_dst_switch = link['dst']['port']
-
-        with open("Onos2.json", "r") as jsonFile:
-            data = json.load(jsonFile)
-            data['deviceId'] = src_switch
-            data['treatment']['instructions'][0]['port'] = port_dst_switch
-            data['selector']['criteria'][0]['port'] = port_src_switch
-            data['selector']['criteria'][2]['ip'] = host_dst
-        with open("out.json", "w") as jsonFile:
-            json.dump(data, jsonFile)
-
-        with open("Onos2.json", "r") as jsonFile:
-            data = json.load(jsonFile)
-            data['deviceId'] = dst_switch
-            data['treatment']['instructions'][0]['port'] = port_dst_switch
-            data['selector']['criteria'][0]['port'] = port_src_switch
-            data['selector']['criteria'][2]['ip'] = host_src
-        with open("in.json", "w") as jsonFile:
-            json.dump(data, jsonFile)
+        #środkowe switche
+        else:
+            port_in = 404
+            port_out = 404
+            for link in response_links['links']:
+                if link['src']['device'] == lista_switchy[i-1] and link['dst']['device'] == lista_switchy[i]:
+                    port_in = link['dst']['port']
+                if link['src']['device'] == lista_switchy[i] and link['dst']['device'] == lista_switchy[i+1]:
+                    port_out = link['src']['port']
+            tworzenie_jsona(lista_switchy[i], port_in, port_out, ip_host_dst, str(i)+'sent.json')
+            tworzenie_jsona(lista_switchy[i], port_out, port_in, ip_host_src, str(i)+'rec.json')
 
 
 if __name__ == '__main__':
-    route = ['Katowice', 'Krakow']
-
-    source_host, destination_host = skrajne(route)
-
-    wewnetrzne(route, source_host, destination_host)
+    route = ['Szczecin', 'Bydgoszcz', 'Warszawa', 'Lublin']
+    POST(route)
 
 
 
