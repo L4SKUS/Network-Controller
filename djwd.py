@@ -3,10 +3,11 @@
 import math
 
 graph = {
-    'Warszawa': {'Krakow': 1.78, 'lodz': 0.84, 'Bydgoszcz':1.6,'Lublin':1.08,'Gdansk':2},
-    'Krakow': {'Katowice': 0.49, 'Lodz': 1.36, 'Lublin': 1.6},
+    'Warszawa': {'Krakow': 1.78, 'Lodz': 0.84, 'Bydgoszcz':1.6,'Lublin':1.08,'Gdansk':2},
+    'Krakow': {'Katowice': 0.49, 'Lodz': 1.36, 'Lublin': 1.6,'Warszawa':1.78},
     'Lodz': {'Warszawa': 0.84,'Krakow': 1.36,'Wroclaw': 1.29,'Bydgoszcz': 1.27},
     'Bydgoszcz': {'Warszawa': 1.6,'Lodz': 1.27,'Gdansk': 1.01,'Poznan': 0.75,'Szczecin':1.64},
+    'Lublin': {'Warszawa': 1.08,'Krakow': 1.6,},
     'Katowice': {'Krakow': 0.49, 'Wroclaw': 1.19},
     'Wroclaw': {'Katowice': 1.19, 'Lodz': 1.29, 'Poznan': 1.02},
     'Szczecin': {'Poznan': 3, 'Bydgoszcz': 1.64, 'Gdansk': 2.02},
